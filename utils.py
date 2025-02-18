@@ -17,20 +17,6 @@ def parse_original_formulas(formula):
     return dict(element_count)
 
 
-def normalized_formulas(formula):
-    """
-    将formula归一化
-    返回一个字符串
-    """
-    element_count = defaultdict(float)
-    elements = re.findall(r'([A-Z][a-z]*)(\d*\.?\d*)', formula)
-    for element, ratio in elements:
-        # 如果没有数量则默认为1
-        count = float(ratio) if ratio else 1.0
-        element_count[element] += count
-    return dict(element_count)
-
-
 def normalize_chemical_formula(formula):
     """
     将formula归一化
