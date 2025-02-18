@@ -1,12 +1,41 @@
-#%%
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
 import pandas as pd
 import re
 import warnings
 warnings.filterwarnings("ignore")
-#%%
+
+
+# In[ ]:
+
+
+data_high_bound = 30
+data_low_bound = -20
+need_to_normalized = False
+
 data = pd.read_excel('./dataset/rt_df_thermo1.xlsx')
-data.head()
-#%%
+print(data.head())
+
+print(f"max = {data['the thermal expansion'].max()}")
+print(f"min = {data['the thermal expansion'].min()}")
+
+in_range_count = data[(data['the thermal expansion'] >= -20) & (data['the thermal expansion'] <= 30)].shape[0]
+
+# 计算总数
+total_count = data.shape[0]
+
+# 计算比例
+proportion = in_range_count / total_count
+print(proportion)
+
+
+# In[ ]:
+
+
 # 函数：解析化学成分及其比例
 def parse_normalized_formulas(formula):
     """
@@ -15,15 +44,27 @@ def parse_normalized_formulas(formula):
     """
     elements = re.findall(r'([A-Z][a-z]*)(\d*\.?\d+)', formula)
     return {element: float(ratio) for element, ratio in elements}
-#%%
+
+
+# In[ ]:
+
+
 # 提取所有化学成分
 all_elements = set()
 for formula in data['Normalized_Formulas']:
     parsed = parse_normalized_formulas(formula)
     all_elements.update(parsed.keys())
-#%%
+
+
+# In[ ]:
+
+
 all_elements
-#%%
+
+
+# In[ ]:
+
+
 # 确保列顺序一致
 all_elements = sorted(all_elements)
 
@@ -32,68 +73,116 @@ for element in all_elements:
     data[element] = data['Normalized_Formulas'].apply(
         lambda x: parse_normalized_formulas(x).get(element, 0)
     )
-#%%
+
+
+# In[ ]:
+
+
 data.head()
-#%%
+
+
+# In[ ]:
+
+
 df = data.copy()
 df = df.drop('formula', axis=1)
 df = df.drop('Normalized_Formulas', axis=1)
 df = df.drop('ID', axis=1)
 df.head()
-#%%
+
+
+# In[ ]:
+
+
 import class_plotpicture as pl
 # 绘制目标特征的条形图
 pl.plot_prediction_feature(df, 'the thermal expansion', 'ImageOfThermal')
-#%% md
-# # 可见需要把大于3000的视为异常值
-#%%
-# 删除 'the thermal expansion' 列中大于 3000 的行
-df_cleaned = df[df['the thermal expansion'] <= 3000]
-#%%
+
+
+# # 脏数据清理
+
+# In[ ]:
+
+
+# 删除 'the thermal expansion' 列中大于 data_high_bound 的行
+df_cleaned = df[df['the thermal expansion'] <= data_high_bound]
+
+# 删除 'the thermal expansion' 列中小于 data_low_bound 的行
+df_cleaned = df_cleaned[df_cleaned['the thermal expansion'] >= data_low_bound]
+
+
+# In[ ]:
+
+
 import class_plotpicture as pl
 
 # 绘制目标特征的条形图
 pl.plot_prediction_feature(df_cleaned, 'the thermal expansion', 'ImageOfThermal')
-#%%
-# 删除 'the thermal expansion' 列中小于 -200 的行
-df_cleaned = df_cleaned[df_cleaned['the thermal expansion'] >= -200]
-#%%
-import class_plotpicture as pl
 
-# 绘制目标特征的条形图
-pl.plot_prediction_feature(df_cleaned, 'the thermal expansion', 'ImageOfThermal')
-#%% md
+
 # # 大致符合正态分布
-#%%
+
+# In[ ]:
+
+
 # 绘制数据的相关性：热力图
 pl.plot_headmap(df_cleaned, 'the thermal expansion', 'ImageOfThermal')
-#%%
+
+
+# In[ ]:
+
+
 # 绘制数据的相关性：热力图
 pl.plot_headmap(df_cleaned, 'the thermal expansion', 'ImageOfThermal', num=10)
-#%% md
+
+
 # # 划分数据，进行训练和测试
-#%%
+
+# In[ ]:
+
+
 all_features = df_cleaned.drop('the thermal expansion', axis=1)
 all_labels = df_cleaned['the thermal expansion']
 print(f'全部的特征：{all_features.shape}')
 print(f'全部的标签：{all_labels.shape}')
-#%%
+
+
+# In[ ]:
+
+
 from sklearn.preprocessing import StandardScaler
 import numpy as np
-# 标准化特征
+# 为标准化特征做准备。但实际使用使用标准化后的特征，取决于代码最开始的 need_to_normalized
 scaler = StandardScaler()
 all_labels_scaler = scaler.fit_transform(np.array(all_labels).reshape(-1, 1))
-#%%
+
+
+# In[ ]:
+
+
 from sklearn.model_selection import train_test_split
-# 将总的数据集分开
-X_train, X_test, y_train, y_test = train_test_split(all_features, all_labels_scaler, test_size=0.2, random_state=42)
+# 将总的数据集分开。这里根据是否需要对特征进行标准化
+if need_to_normalized:
+    X_train, X_test, y_train, y_test = train_test_split(all_features, all_labels_scaler, test_size=0.2, random_state=42)
+else:
+    X_train, X_test, y_train, y_test = train_test_split(all_features, all_labels, test_size=0.2, random_state=42)
 print(f'训练集的特征：{X_train.shape}, 标签：{y_train.shape}')
 print(f'测试集的特征：{X_test.shape}, 标签：{y_test.shape}')
-#%%
+
+
+# # 超参数优化
+
+# In[ ]:
+
+
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
-#%%
+
+
+# In[ ]:
+
+
 # 统计不同的值对随机森林的变化
 cllo_mse = []
 cllo_r2 = []
@@ -126,7 +215,11 @@ plt.subplot(122)
 plt.plot(cllo_r2)
 plt.title('在调节n_estimators参数时R2的变化')
 plt.show()
-#%%
+
+
+# In[ ]:
+
+
 # 统计不同的值对随机森林的变化
 cllo_mse = []
 cllo_r2 = []
@@ -159,7 +252,11 @@ plt.subplot(122)
 plt.plot(cllo_r2)
 plt.title('在调节max_features参数时R2的变化')
 plt.show()
-#%%
+
+
+# In[ ]:
+
+
 # 统计不同的值对随机森林的变化
 cllo_mse = []
 cllo_r2 = []
@@ -193,7 +290,11 @@ plt.subplot(122)
 plt.plot(cllo_r2)
 plt.title(f'在调节{name}参数时R2的变化')
 plt.show()
-#%%
+
+
+# In[ ]:
+
+
 # 统计不同的值对随机森林的变化
 cllo_mse = []
 cllo_r2 = []
@@ -227,7 +328,11 @@ plt.subplot(122)
 plt.plot(cllo_r2)
 plt.title(f'在调节{name}参数时R2的变化')
 plt.show()
-#%%
+
+
+# In[ ]:
+
+
 # 创建随机森林分类器对象
 clf = RandomForestRegressor(random_state=42, n_estimators=2, max_features=38, min_samples_leaf=1, max_depth=29)
 # 在训练集上拟合模型
@@ -241,7 +346,11 @@ r2 = r2_score(y_test, label_pred)
 # 输出模型评估结果和目标方程
 print(f'MSE:{mse:.5f}')
 print(f"R2: {r2:.5f}")
-#%%
+
+
+# In[ ]:
+
+
 import matplotlib.pyplot as plt
 # 先将数据反归一化
 salered_train_label_pred = scaler.inverse_transform(train_pred.reshape(-1,1))
@@ -274,9 +383,12 @@ plt.ylabel('预测的值')
 plt.title('随机森林的测试集预测结果')
 # 显示图形
 plt.show()
-#%% md
+
+
 # # 查看预测的偏差值
-#%%
+
+# In[ ]:
+
 
 big_num = 0
 small_num = 0
@@ -308,3 +420,4 @@ plt.ylabel('统计个数')
 # 显示网格
 plt.grid(True)
 plt.show()
+
