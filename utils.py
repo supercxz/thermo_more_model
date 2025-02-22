@@ -1,6 +1,7 @@
 # 函数：解析化学成分及其比例
 import re
 from collections import defaultdict
+import csv
 
 
 def parse_original_formulas(formula):
@@ -51,12 +52,34 @@ def normalize_chemical_formula(formula):
     return result
 
 
+def write_to_csv(file_path, column1_data, column2_data, column1_name, column2_name):
+    # 确保两个列表长度相同
+    if len(column1_data) != len(column2_data):
+        raise ValueError("两列数据的长度必须相同")
+    
+    # 打开文件并写入数据
+    with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        
+        # 写入列名
+        writer.writerow([column1_name, column2_name])
+        
+        # 写入数据行
+        for row in zip(column1_data, column2_data):
+            writer.writerow(row)
+
+
 if __name__ == '__main__':
-    print("测试：输入H2O")
-    print(normalize_chemical_formula("H2O"))
+    # print("测试：输入H2O")
+    # print(normalize_chemical_formula("H2O"))
 
-    print("测试：输入H4.5O0.5Ti5")
-    print(normalize_chemical_formula("H4.5O0.5Ti5"))
+    # print("测试：输入H4.5O0.5Ti5")
+    # print(normalize_chemical_formula("H4.5O0.5Ti5"))
 
-    print("测试：输入H")
-    print(normalize_chemical_formula("H"))
+    # print("测试：输入H")
+    # print(normalize_chemical_formula("H"))
+
+    print("测试文件写入")
+    column1 = ['A', 'B', 'C']
+    column2 = [1, 2, 3]
+    write_to_csv('result/output.csv', column1, column2, 'Letter', 'Number')
