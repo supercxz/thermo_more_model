@@ -30,6 +30,61 @@ def plot_prediction_feature(data, label, name):
     plt.savefig(f'./{name}/{label}分布散点图.jpg')
     plt.show()
 
+
+def plot_prediction_feature_2(data, label, name):
+    # 直方图
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data[label], color='g', bins=100, kde=True, stat="density", alpha=0.4)
+    
+    plt.title(f'{label}分布')
+    
+    # 设置外部边框样式
+    ax = plt.gca()
+    ax.spines['bottom'].set_linewidth(1.5)
+    ax.spines['bottom'].set_color('black')
+    ax.spines['left'].set_linewidth(1.5)
+    ax.spines['left'].set_color('black')
+    ax.spines['top'].set_linewidth(1.5)
+    ax.spines['top'].set_color('black')
+    ax.spines['right'].set_linewidth(1.5)
+    ax.spines['right'].set_color('black')
+
+    # 隐藏内部网格
+    plt.grid(False)
+    
+    # 设置标签朝内
+    ax.yaxis.set_tick_params(direction='in')  # y轴刻度朝内
+    ax.xaxis.set_tick_params(direction='in')  # x轴刻度朝内
+    
+    plt.savefig(f'./{name}/{label}分布直方图.jpg')
+    plt.show()
+    
+    # 散点图
+    plt.figure(figsize=(10, 6))
+    sns.scatterplot(data=data, x=data.index, y=label, marker='o', color='b')  # 使用合适的 x, y 参数
+    
+    plt.title(f'{label}分布')
+    
+    # 设置外部边框样式
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)     # 隐藏上边框
+    ax.spines['right'].set_visible(False)   # 隐藏右边框
+    ax.spines['bottom'].set_linewidth(1.5)
+    ax.spines['bottom'].set_color('black')
+    ax.spines['left'].set_linewidth(1.5)
+    ax.spines['left'].set_color('black')
+
+    # 隐藏内部网格
+    plt.grid(False)
+    
+    # 设置标签朝内
+    ax.yaxis.set_tick_params(direction='in')  # y轴刻度朝内
+    ax.xaxis.set_tick_params(direction='in')  # x轴刻度朝内
+    
+    plt.savefig(f'./{name}/{label}分布散点图.jpg')
+    plt.show()
+
+
 # 绘制数据的热力图（相关系数为皮尔逊），数据填充后（其实和填充前并没有多大区别）
 # front_features：在绘制前几特征热力图的同时，会将其直方图和散点图的相关性也画出。
 def plot_headmap(data, label, name, num=0, front_features = False):
