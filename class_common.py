@@ -31,7 +31,7 @@ def train_epoch_ch3(net, train_iter, loss, updater):  # @save
     # 返回训练损失
     return metric[0] / metric[2], metric[1] / metric[2]
 
-def train_decay(net, train_features, test_features, train_labels, test_labels, batch_size, loss,
+def train_decay(net, train_features, test_features, train_labels, test_labels, batch_size, loss, loss_mae,
           num_epochs=400, isbias = True, weight_decay = 0):
     train_iter = d2l.load_array((train_features, train_labels),
                                 batch_size)
@@ -42,6 +42,7 @@ def train_decay(net, train_features, test_features, train_labels, test_labels, b
     net.eval()
     pre = net(test_features)
     mse = loss(pre, test_labels).mean().item()
+    mae = loss_mae(pre, test_labels).mean().item()
 
     y_mean = test_labels.mean()
     tss = ((test_labels - y_mean) ** 2).sum().item()
@@ -49,4 +50,4 @@ def train_decay(net, train_features, test_features, train_labels, test_labels, b
     r2 = 1 - (rss / tss)
     print(f'神经网络模型【原数据】MSE:{mse:.5f},r2: {r2:.5f}')
     # print('weight:', net[0].weight.data.numpy())
-    return mse, r2
+    return mse, mae, r2

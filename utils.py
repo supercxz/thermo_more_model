@@ -73,13 +73,13 @@ if __name__ == '__main__':
     # print("测试：输入H2O")
     # print(normalize_chemical_formula("H2O"))
 
-    # print("测试：输入H4.5O0.5Ti5")
-    # print(normalize_chemical_formula("H4.5O0.5Ti5"))
+    print("测试：输入H4.5O0.5Ti5")
+    print(normalize_chemical_formula("H4.5O0.5Ti5"))
 
     # print("测试：输入H")
     # print(normalize_chemical_formula("H"))
 
-    print("测试文件写入")
-    column1 = ['A', 'B', 'C']
-    column2 = [1, 2, 3]
-    write_to_csv('result/output.csv', column1, column2, 'Letter', 'Number')
+    # print("测试文件写入")
+    # column1 = ['A', 'B', 'C']
+    # column2 = [1, 2, 3]
+    # write_to_csv('result/output.csv', column1, column2, 'Letter', 'Number')
